@@ -1,42 +1,41 @@
-#!/usr/bin/env python
-#-- coding: utf-8 --
-
-# Import necessary libraries
-import RPi.GPIO as GPIO
-import time, argparse
-
-# Initialize variables
-pin = None
-
-# Get arguments
-parser = argparse.ArgumentParser()
-
-parser.add_argument("pin", type=int, help="The pin of the PIR sensor.")
-
-args = parser.parse_args()
-
-pin = args.pin
-
-# Configure GPIO
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-GPIO.setup(pin, GPIO.IN)
-
-# Indicate PIR sensor start
-print("PIR_START")
-
-# Script
-try:
-	time.sleep(2) # Sensor Stabilization Delay (2 seconds)
-	
-	# Infinite loop
-	while True:
-		if GPIO.input(pin):
-			print("USER_PRESENCE")
-			time.sleep(5) # Delay to avoid multiple detections (5 seconds)
-
-		time.sleep(1) # Loop delay (1 second)
+#!/usr/bin/env python3
+"""PIR reader, based on MMM-PIR-Sensor-Lite by Grena (MIT)."""
+import argparse
+import signal
+import time
 
 
-finally:
-	GPIO.cleanup()
+def shutdown(signum, frame):
+    raise SystemExit(0)
+
+
+def monitor(gpio, pin, sleep=time.sleep, clock=time.monotonic, emit=print):
+    """Poll frequently; refresh presence at most twice a second while high."""
+    try:
+        gpio.setmode(gpio.BCM)
+        gpio.setup(pin, gpio.IN)
+        sleep(2)
+        emit("PIR_START", flush=True)
+        last_presence = float("-inf")
+        while True:
+            now = clock()
+            if gpio.input(pin) and now - last_presence >= 0.5:
+                emit("USER_PRESENCE", flush=True)
+                last_presence = now
+            sleep(0.1)
+    finally:
+        gpio.cleanup(pin)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("pin", type=int, choices=range(1, 28), help="BCM GPIO pin (1-27)")
+    args = parser.parse_args()
+    import RPi.GPIO as GPIO
+    signal.signal(signal.SIGTERM, shutdown)
+    signal.signal(signal.SIGINT, shutdown)
+    monitor(GPIO, args.pin)
+
+
+if __name__ == "__main__":
+    main()
