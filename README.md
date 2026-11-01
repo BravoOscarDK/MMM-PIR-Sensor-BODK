@@ -4,17 +4,45 @@ MagicMirror² module for switching a monitor off after inactivity and waking it 
 
 ## Installation
 
-The BODK repository has not been published yet. Copy this complete folder to your Pi as:
+In your terminal, go to your MagicMirror modules folder:
 
-```text
-~/MagicMirror/modules/MMM-PIR-Sensor-BODK
+```sh
+cd ~/MagicMirror/modules
 ```
 
-Keep that folder name and `MMM-PIR-Sensor-BODK.js` unchanged. This module has no npm dependencies, so `npm install` is unnecessary. Python 3, a working `RPi.GPIO` installation and the selected display command must already be available. If the original module works on your Pi, keep its working GPIO and display environment.
+Clone this repository:
 
-Remove or disable the original Lite module configuration before enabling BODK, so two modules do not control the same sensor and monitor. Keep a copy of the original module for rollback. Restart MagicMirror after copying the files and changing its configuration.
+```sh
+git clone https://github.com/BravoOscarDK/MMM-PIR-Sensor-BODK.git
+```
 
-Do not use `git pull` to obtain BODK changes from the original repository: it does not contain these changes. Until publication, updates are deployed by copying the updated local files.
+Go to your MMM-PIR-Sensor-BODK module folder:
+
+```sh
+cd ~/MagicMirror/modules/MMM-PIR-Sensor-BODK
+```
+
+This module has no npm dependencies, so `npm install` is not required. Python 3, a working `RPi.GPIO` installation and the selected display command must already be available.
+
+Configure the module in `config/config.js` as shown below. Keep the folder name and `MMM-PIR-Sensor-BODK.js` unchanged. Remove or disable the original Lite module configuration before enabling BODK, so two modules do not control the same sensor and monitor. Retain your working sensor and display settings, and restart MagicMirror after installation.
+
+## Update
+
+In your terminal, go to your MMM-PIR-Sensor-BODK module folder:
+
+```sh
+cd ~/MagicMirror/modules/MMM-PIR-Sensor-BODK
+```
+
+Incorporate changes from this repository:
+
+```sh
+git pull --ff-only
+```
+
+No `npm install` is required. Restart MagicMirror to load the updated code.
+
+These update commands apply to a copy cloned from this BODK repository. If you previously installed the module by copying files or cloning the original Lite repository, first install from the BODK repository using the steps above. Back up your existing module and configuration before replacing them.
 
 ## Configuration
 
