@@ -3,10 +3,9 @@
   "version": "1.3.0",
   "description": "PIR presence detection and reliable monitor standby for MagicMirror2.",
   "main": "MMM-PIR-Sensor-BODK.js",
-  "author": "Grena",
+  "author": "BODK",
   "contributors": ["BODK"],
   "license": "MIT",
   "private": true,
   "keywords": ["magicmirror", "pir", "motion", "monitor", "standby"],
-  "scripts": { "test": "node --test test_helper.cjs" }
 }

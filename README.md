@@ -111,11 +111,3 @@ python3 -u ~/MagicMirror/modules/MMM-PIR-Sensor-BODK/pir.py 2
 
 Replace `2` with your BCM pin. Expect `PIR_START` after stabilization and `USER_PRESENCE` while the signal is high. Ctrl+C releases the selected pin.
 
-## Automated tests
-
-```sh
-npm test
-python3 -B -m unittest -v test_pir.py
-```
-
-Tests simulate command failures, verification mismatches for all three display backends, overlapping requests, repeated on/off cycles, startup watchdog, restart, cleanup, configuration errors, countdown display and GPIO polling. They do not operate a physical monitor or GPIO.
