@@ -67,9 +67,9 @@ Pins use BCM numbering, not physical header positions. Only one sensor/display c
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `sensorPin` | `0` | Required BCM pin, integer 1-27. Zero indicates missing configuration. |
-| `commandType` | `"xrandr"` | `"xrandr"`, `"xset"` or `"vcgencmd"`. Retain the command working on your Pi. |
-| `hdmiPort` | `"HDMI-1"` | Exact output name for xrandr; use `xrandr --query` to list outputs. |
-| `rotation` | `"normal"` | xrandr rotation: normal, left, right or inverted. |
+| `commandType` | `"xrandr"` | `"xrandr"`, `"xset"`, `"vcgencmd"` or `"wlr"`. Retain the command working on your Pi. |
+| `hdmiPort` | `"HDMI-1"` | Exact output name for xrandr or wlr (e.g. `HDMI-A-1`); use `xrandr --query` or `wlr-randr` to list outputs. |
+| `rotation` | `"normal"` | xrandr/wlr rotation: normal, left, right or inverted (wlr transforms: normal, 90, 270, 180). |
 | `deactivateDelay` | `900000` | Inactivity period in milliseconds, integer 1000-86400000. |
 | `verifyPower` | `true` | Query display output state after each command; retry on failure or mismatch. |
 | `debugMode` | `false` | Simulate display changes without running display commands. Sensor still runs. |
@@ -86,13 +86,13 @@ Pins use BCM numbering, not physical header positions. Only one sensor/display c
 
 The sensor stabilizes for two seconds before announcing readiness. GPIO is polled every 100 ms and presence is reported approximately every 500 ms while the input is high. The inactivity timer starts after sensor readiness and resets with each presence message. A sensor that remains high will keep the screen on, even if a person has already left; the PIR's own hold time is part of this behaviour.
 
-Display commands run sequentially. Movement during a pending switch-off queues a switch-on. Each command has a 10-second timeout; failures are logged and retried after five seconds without requiring new movement. The query runs after a 300 ms settling period and uses `xrandr --query`, `xset q` or `vcgencmd display_power`. This checks the software-reported output state, not the physical panel or its power consumption. There is no continuous monitoring of changes made by other programs.
+Display commands run sequentially. Movement during a pending switch-off queues a switch-on. Each command has a 10-second timeout; failures are logged and retried after five seconds without requiring new movement. The query runs after a 300 ms settling period and uses `xrandr --query`, `xset q` , `vcgencmd display_power` or `wlr-randr`. This checks the software-reported output state, not the physical panel or its power consumption. There is no continuous monitoring of changes made by other programs.
 
 If a query is unsupported on an otherwise working setup, the module displays a verification error. Set `verifyPower: false` to retain command exit-code checks and retries without the extra query. Capture the error before disabling verification so it can be investigated.
 
 An exited sensor is restarted after five seconds. A sensor process that has not reported readiness within 15 seconds is terminated for restart. During a sensor outage the inactivity timer is cancelled and the screen is kept on, so a failed sensor does not leave it asleep. Sensor and display errors appear in the module and server log. Shutdown clears backend timers and terminates child processes; hiding the module stops its UI timers while presence detection continues.
 
-This release retains the existing RPi.GPIO and display backends. It does not add native Wayland control or a new Raspberry Pi 5 GPIO backend. Hardware compatibility must be tested on the target Pi. Core project: [MagicMirror²](https://github.com/MagicMirrorOrg/MagicMirror).
+This release retains RPi.GPIO and supports Wayland output control through `commandType: "wlr"` using `wlr-randr`. The compositor must implement the wlr output-management protocol, and MagicMirror must run with access to the active Wayland session. It does not add a new Raspberry Pi 5 GPIO backend. Hardware compatibility must be tested on the target Pi. Core project: [MagicMirror²](https://github.com/MagicMirrorOrg/MagicMirror).
 
 ## Test on your Pi
 
@@ -111,3 +111,22 @@ python3 -u ~/MagicMirror/modules/MMM-PIR-Sensor-BODK/pir.py 2
 
 Replace `2` with your BCM pin. Expect `PIR_START` after stabilization and `USER_PRESENCE` while the signal is high. Ctrl+C releases the selected pin.
 
+
+## Wayland example
+
+```javascript
+{
+  module: "MMM-PIR-Sensor-BODK",
+  position: "top_left",
+  config: {
+    title: "Automatisk sluk",
+    sensorPin: 23,
+    commandType: "wlr",
+    hdmiPort: "HDMI-A-1",
+    rotation: "left",
+    deactivateDelay: 10 * 60 * 1000
+  }
+}
+```
+
+`wlr-randr` must be installed and runnable in the same desktop session as MagicMirror. The module uses `--output <name> --off` to disable the output and `--output <name> --on --transform <rotation>` to enable it. Verification reads the selected output's `Enabled` field; other outputs are ignored.

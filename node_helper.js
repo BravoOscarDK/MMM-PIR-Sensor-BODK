@@ -37,9 +37,9 @@ module.exports = NodeHelper.create({
     };
     check("sensorPin", Number.isInteger(c.sensorPin) && c.sensorPin >= 1 && c.sensorPin <= 27, "BCM pin: integer 1-27, without quotes");
     check("deactivateDelay", Number.isInteger(c.deactivateDelay) && c.deactivateDelay >= 1000 && c.deactivateDelay <= 86400000, "milliseconds: integer 1000-86400000, without quotes");
-    check("commandType", ["xrandr", "xset", "vcgencmd"].includes(c.commandType), "xrandr, xset or vcgencmd");
-    // Output and rotation apply only to the xrandr backend.
-    if (c.commandType === "xrandr") {
+    check("commandType", ["xrandr", "xset", "vcgencmd", "wlr"].includes(c.commandType), "xrandr, xset, vcgencmd or wlr");
+    // Validate the output settings for backends that use them.
+    if (["xrandr", "wlr"].includes(c.commandType)) {
       check("rotation", ["normal", "left", "right", "inverted"].includes(c.rotation), "normal, left, right or inverted");
       check("hdmiPort", typeof c.hdmiPort === "string" && /^[a-zA-Z0-9][a-zA-Z0-9_.:-]*$/.test(c.hdmiPort), "output name, e.g. HDMI-1");
     }
@@ -112,6 +112,7 @@ module.exports = NodeHelper.create({
     const on = this.desiredPower;
     let command, args;
     switch (this.config.commandType) {
+      case "wlr": command = "wlr-randr"; args = ["--output", this.config.hdmiPort, ...(on ? ["--on", "--transform", { normal: "normal", left: "90", inverted: "180", right: "270" }[this.config.rotation]] : ["--off"])]; break;
       case "vcgencmd": command = "/usr/bin/vcgencmd"; args = ["display_power", on ? "1" : "0"]; break;
       case "xset": command = "xset"; args = ["dpms", "force", on ? "on" : "off"]; break;
       default: command = "xrandr"; args = ["--output", this.config.hdmiPort, ...(on ? ["--rotate", this.config.rotation, "--auto"] : ["--off"])];
@@ -143,14 +144,23 @@ module.exports = NodeHelper.create({
   verifyMonitor(on, done) {
     if (this.stopped) return;
     const type = this.config.commandType;
-    const command = type === "vcgencmd" ? "/usr/bin/vcgencmd" : type;
-    const args = type === "xrandr" ? ["--query"] : type === "xset" ? ["q"] : ["display_power"];
+    const command = type === "wlr" ? "wlr-randr" : type === "vcgencmd" ? "/usr/bin/vcgencmd" : type;
+    const args = type === "wlr" ? [] : type === "xrandr" ? ["--query"] : type === "xset" ? ["q"] : ["display_power"];
     this.powerProcess = execFile(command, args, { timeout: 10000 }, (error, stdout) => {
       if (this.stopped) return;
       if (error) return done(error);
       let actual = null;
       const text = String(stdout);
-      if (type === "vcgencmd") {
+      if (type === "wlr") {
+        let selected = false;
+        for (const line of text.split(/\r?\n/)) {
+          if (/^\S/.test(line)) selected = line.split(/\s+/)[0] === this.config.hdmiPort;
+          if (selected) {
+            const match = line.match(/^\s+Enabled:\s+(yes|no)\s*$/i);
+            if (match) { actual = match[1].toLowerCase() === "yes"; break; }
+          }
+        }
+      } else if (type === "vcgencmd") {
         const match = text.match(/display_power=(0|1)/);
         if (match) actual = match[1] === "1";
       } else if (type === "xset") {
