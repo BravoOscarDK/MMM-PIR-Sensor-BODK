@@ -31,12 +31,23 @@ module.exports = NodeHelper.create({
       return;
     }
     const c = Object.assign({ commandType: "xrandr", hdmiPort: "HDMI-1", rotation: "normal", deactivateDelay: 900000, debugMode: false, verifyPower: true }, payload);
-    if (!Number.isInteger(c.sensorPin) || c.sensorPin < 1 || c.sensorPin > 27 ||
-        !Number.isInteger(c.deactivateDelay) || c.deactivateDelay < 1000 || c.deactivateDelay > 86400000 ||
-        !["xrandr", "xset", "vcgencmd"].includes(c.commandType) ||
-        !["normal", "left", "right", "inverted"].includes(c.rotation) ||
-        typeof c.hdmiPort !== "string" || !/^[a-zA-Z0-9][a-zA-Z0-9_.:-]*$/.test(c.hdmiPort) || typeof c.debugMode !== "boolean" || typeof c.verifyPower !== "boolean") {
-      this.status("config", "Invalid configuration: check sensorPin, deactivateDelay, commandType, hdmiPort, rotation and boolean options.");
+    const invalid = [];
+    const check = (key, valid, expected) => {
+      if (!valid) invalid.push(`${key}=${JSON.stringify(c[key])} (${expected})`);
+    };
+    check("sensorPin", Number.isInteger(c.sensorPin) && c.sensorPin >= 1 && c.sensorPin <= 27, "BCM pin: integer 1-27, without quotes");
+    check("deactivateDelay", Number.isInteger(c.deactivateDelay) && c.deactivateDelay >= 1000 && c.deactivateDelay <= 86400000, "milliseconds: integer 1000-86400000, without quotes");
+    check("commandType", ["xrandr", "xset", "vcgencmd"].includes(c.commandType), "xrandr, xset or vcgencmd");
+    // Output and rotation apply only to the xrandr backend.
+    if (c.commandType === "xrandr") {
+      check("rotation", ["normal", "left", "right", "inverted"].includes(c.rotation), "normal, left, right or inverted");
+      check("hdmiPort", typeof c.hdmiPort === "string" && /^[a-zA-Z0-9][a-zA-Z0-9_.:-]*$/.test(c.hdmiPort), "output name, e.g. HDMI-1");
+    }
+    for (const key of ["debugMode", "verifyPower"]) check(key, typeof c[key] === "boolean", "true or false, without quotes");
+    if (invalid.length) {
+      const message = `Invalid configuration: ${invalid.join("; ")}`;
+      this.status("config", message);
+      this.report(message);
       return;
     }
     this.config = c;
