@@ -77,7 +77,7 @@ Pins use BCM numbering, not physical header positions. Only one sensor/display c
 | `showCountDown` | `true` | Display countdown; disabling it stops periodic UI updates. |
 | `showDetection` | `true` | Show detection icon independently of the countdown. |
 | `updateInterval` | `1000` | UI refresh milliseconds; clamped to 100-5000; zero uses 1000. |
-| `animationSpeed` | `1000` | MagicMirror animation duration; detection icon lasts at least 100 ms. |
+| `animationSpeed` | `1000` | Detection icon duration; at least 100 ms (zero uses 1000 ms). UI updates use no animation to prevent countdown flicker. |
 | `hoursLabel` | `"h"` | Hours label. |
 | `minutesLabel` | `"m"` | Minutes label. |
 | `secondsLabel` | `"s"` | Seconds label. |

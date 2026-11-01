@@ -69,7 +69,7 @@ Module.register("MMM-PIR-Sensor-BODK", {
     else if (notification === "POWER_ON" || notification === "POWER_OFF") Log.info(`${this.name}: ${notification}`);
   },
   redraw() {
-    if (!this.suspended) this.updateDom(this.config.animationSpeed);
+    if (!this.suspended) this.updateDom(0);
   },
   setIconTimeout() {
     if (!this.config.showDetection || this.suspended) return;
