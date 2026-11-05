@@ -15,9 +15,19 @@ Module.register("MMM-PIR-Sensor-BODK", {
     this.suspended = false;
     if (this.mouseMoveHandler) window.removeEventListener("mousemove", this.mouseMoveHandler);
     this.lastMousePresence = null;
-    this.mouseMoveHandler = () => {
+    this.lastMousePosition = null;
+    this.powerChanging = false;
+    this.mouseIgnoreUntil = Date.now() + 1000;
+    this.mouseMoveHandler = (event) => {
       if (!this.config.wakeOnMouse) return;
+      if (!event.isTrusted || !Number.isFinite(event.screenX) || !Number.isFinite(event.screenY)) return;
+      const previous = this.lastMousePosition;
+      this.lastMousePosition = { x: event.screenX, y: event.screenY };
+      // Output changes can reposition the pointer without physical mouse input.
+      // Track the new position even while suppressed, so it becomes the baseline.
+      if (!previous || (previous.x === event.screenX && previous.y === event.screenY)) return;
       const now = Date.now();
+      if (this.powerChanging || now < this.mouseIgnoreUntil) return;
       if (this.lastMousePresence !== null && now - this.lastMousePresence < 500) return;
       this.lastMousePresence = now;
       this.sendSocketNotification("MOUSE_PRESENCE");
@@ -66,7 +76,11 @@ Module.register("MMM-PIR-Sensor-BODK", {
     return wrapper;
   },
   socketNotificationReceived(notification, payload) {
-    if (notification === "DEADLINE") this.resetCountdown(payload);
+    if (notification === "POWER_CHANGING") {
+      this.powerChanging = payload;
+      this.mouseIgnoreUntil = Date.now() + 1000;
+      this.lastMousePosition = null;
+    } else if (notification === "DEADLINE") this.resetCountdown(payload);
     else if (notification === "STARTED") {
       this.loaded = true;
       this.redraw();

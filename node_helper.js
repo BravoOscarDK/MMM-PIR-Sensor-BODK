@@ -12,6 +12,7 @@ module.exports = NodeHelper.create({
     this.activated = null;
     this.desiredPower = true;
     this.commandRunning = false;
+    this.mouseIgnoreUntil = 0;
   },
   status(kind, error) {
     if (error) this.errors[kind] = error;
@@ -24,9 +25,9 @@ module.exports = NodeHelper.create({
   },
   socketNotificationReceived(notification, payload) {
     if (notification === "MOUSE_PRESENCE") {
-      if (!this.stopped && this.config && this.config.wakeOnMouse) {
+      if (!this.stopped && this.config && this.config.wakeOnMouse && !this.commandRunning && Date.now() >= this.mouseIgnoreUntil) {
         // Preserve the fail-safe: only start a standby timer while PIR is ready.
-        if (this.started) this.resetTimeout();
+        if (this.started) this.resetTimeout("mouse");
         this.sendSocketNotification("USER_PRESENCE", true);
         this.setPower(true);
       }
@@ -34,6 +35,7 @@ module.exports = NodeHelper.create({
     }
     if (notification !== "CONFIG" || this.stopped) return;
     if (this.config) {
+      this.sendSocketNotification("POWER_CHANGING", this.commandRunning);
       if (this.started) this.sendSocketNotification("STARTED", true);
       this.sendSocketNotification("DEADLINE", this.deadline);
       this.status();
@@ -79,10 +81,10 @@ module.exports = NodeHelper.create({
         clearTimeout(this.sensorWatchdog);
         this.started = true;
         this.status("sensor");
-        this.resetTimeout();
+        this.resetTimeout("sensor ready");
         this.sendSocketNotification("STARTED", true);
       } else if (line.trim() === "USER_PRESENCE" && this.started) {
-        this.resetTimeout();
+        this.resetTimeout("PIR");
         this.sendSocketNotification("USER_PRESENCE", true);
         this.setPower(true);
       }
@@ -105,7 +107,8 @@ module.exports = NodeHelper.create({
       }
     });
   },
-  resetTimeout() {
+  resetTimeout(source) {
+    if (!this.desiredPower) console.info(`${this.name}: Wake requested by ${source}; restarting inactivity countdown.`);
     clearTimeout(this.timeout);
     this.deadline = Date.now() + this.config.deactivateDelay;
     this.sendSocketNotification("DEADLINE", this.deadline);
@@ -127,10 +130,13 @@ module.exports = NodeHelper.create({
       default: command = "xrandr"; args = ["--output", this.config.hdmiPort, ...(on ? ["--rotate", this.config.rotation, "--auto"] : ["--off"])];
     }
     this.commandRunning = true;
+    this.sendSocketNotification("POWER_CHANGING", true);
     const done = (error) => {
       this.commandRunning = false;
       this.powerProcess = null;
       if (this.stopped) return;
+      this.mouseIgnoreUntil = Date.now() + 1000;
+      this.sendSocketNotification("POWER_CHANGING", false);
       if (error) {
         this.activated = null;
         this.report(`Monitor ${on ? "on" : "off"} failed: ${error.message}; retrying in 5 seconds.`);
