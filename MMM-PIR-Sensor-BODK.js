@@ -5,7 +5,7 @@ Module.register("MMM-PIR-Sensor-BODK", {
     title: "Automatic Standby", deactivateDelay: 15 * 60 * 1000,
     updateInterval: 1000, animationSpeed: 1000, showCountDown: true, showDetection: true,
     hoursLabel: "h", minutesLabel: "m", secondsLabel: "s", debugMode: false,
-    verifyPower: true
+    verifyPower: true, wakeOnMouse: true
   },
   getStyles() { return ["font-awesome.css"]; },
   start() {
@@ -13,6 +13,16 @@ Module.register("MMM-PIR-Sensor-BODK", {
     this.detected = false;
     this.errorMessage = "";
     this.suspended = false;
+    if (this.mouseMoveHandler) window.removeEventListener("mousemove", this.mouseMoveHandler);
+    this.lastMousePresence = null;
+    this.mouseMoveHandler = () => {
+      if (!this.config.wakeOnMouse) return;
+      const now = Date.now();
+      if (this.lastMousePresence !== null && now - this.lastMousePresence < 500) return;
+      this.lastMousePresence = now;
+      this.sendSocketNotification("MOUSE_PRESENCE");
+    };
+    window.addEventListener("mousemove", this.mouseMoveHandler, { passive: true });
     this.sendSocketNotification("CONFIG", this.config);
   },
   getDom() {

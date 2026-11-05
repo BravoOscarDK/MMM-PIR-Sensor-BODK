@@ -57,7 +57,8 @@ Add this entry to the `modules` array in `config/config.js`, retaining your exis
     commandType: "xrandr",
     hdmiPort: "HDMI-1",
     deactivateDelay: 15 * 60 * 1000,
-    verifyPower: true
+    verifyPower: true,
+    wakeOnMouse: true
   }
 }
 ```
@@ -72,6 +73,7 @@ Pins use BCM numbering, not physical header positions. Only one sensor/display c
 | `rotation` | `"normal"` | xrandr/wlr rotation: normal, left, right or inverted (wlr transforms: normal, 90, 270, 180). |
 | `deactivateDelay` | `900000` | Inactivity period in milliseconds, integer 1000-86400000. |
 | `verifyPower` | `true` | Query display output state after each command; retry on failure or mismatch. |
+| `wakeOnMouse` | `true` | Mouse movement in the MagicMirror window wakes the display and resets the inactivity timer, including input delivered through VNC. Set to `false` to disable. |
 | `debugMode` | `false` | Simulate display changes without running display commands. Sensor still runs. |
 | `title` | `"Automatic Standby"` | Countdown title; empty string hides it. |
 | `showCountDown` | `true` | Display countdown; disabling it stops periodic UI updates. |
@@ -83,6 +85,8 @@ Pins use BCM numbering, not physical header positions. Only one sensor/display c
 | `secondsLabel` | `"s"` | Seconds label. |
 
 ## Reliability and limitations
+
+Mouse activity is sent at most once every 500 ms and uses the same display control as PIR activity. It remains active when the module is hidden. VNC must control the desktop session running MagicMirror, and pointer events must reach the MagicMirror window. Movement over other applications or in a separate virtual VNC desktop is not detected. Some VNC/compositor setups stop delivering pointer events when an output is disabled; this feature cannot wake the display in that case. A remote browser opened directly on MagicMirror can also wake the Pi's display by moving the mouse over the page. During a sensor outage, mouse activity keeps the display on without restarting the standby timer.
 
 The sensor stabilizes for two seconds before announcing readiness. GPIO is polled every 100 ms and presence is reported approximately every 500 ms while the input is high. The inactivity timer starts after sensor readiness and resets with each presence message. A sensor that remains high will keep the screen on, even if a person has already left; the PIR's own hold time is part of this behaviour.
 
@@ -101,7 +105,8 @@ This release retains RPi.GPIO and supports Wayland output control through `comma
 3. Wait for the countdown, then leave the sensor area. Check that the screen switches off after the PIR signal has gone low and the delay expires.
 4. Move in front of the sensor and confirm that the screen wakes and the countdown restarts. Repeat at least ten times, including movement near the moment of switch-off.
 5. If it fails, save the MagicMirror server log lines containing `MMM-PIR-Sensor-BODK`, especially `Monitor off failed`, and note whether the countdown reached zero.
-6. Restore your normal delay when finished.
+6. Connect through VNC to the same desktop session, wait for standby, then move the mouse over the MagicMirror window. Confirm that the display wakes and the countdown restarts. Keep moving the mouse and confirm that standby is postponed. With `wakeOnMouse: false`, mouse movement should no longer reset the module's countdown (the desktop itself may still wake some display backends).
+7. Restore your normal delay when finished.
 
 Standalone sensor check (stop MagicMirror first to avoid simultaneous GPIO access):
 

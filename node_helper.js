@@ -23,6 +23,15 @@ module.exports = NodeHelper.create({
     this.sendSocketNotification("DEBUG", message);
   },
   socketNotificationReceived(notification, payload) {
+    if (notification === "MOUSE_PRESENCE") {
+      if (!this.stopped && this.config && this.config.wakeOnMouse) {
+        // Preserve the fail-safe: only start a standby timer while PIR is ready.
+        if (this.started) this.resetTimeout();
+        this.sendSocketNotification("USER_PRESENCE", true);
+        this.setPower(true);
+      }
+      return;
+    }
     if (notification !== "CONFIG" || this.stopped) return;
     if (this.config) {
       if (this.started) this.sendSocketNotification("STARTED", true);
@@ -30,7 +39,7 @@ module.exports = NodeHelper.create({
       this.status();
       return;
     }
-    const c = Object.assign({ commandType: "xrandr", hdmiPort: "HDMI-1", rotation: "normal", deactivateDelay: 900000, debugMode: false, verifyPower: true }, payload);
+    const c = Object.assign({ commandType: "xrandr", hdmiPort: "HDMI-1", rotation: "normal", deactivateDelay: 900000, debugMode: false, verifyPower: true, wakeOnMouse: true }, payload);
     const invalid = [];
     const check = (key, valid, expected) => {
       if (!valid) invalid.push(`${key}=${JSON.stringify(c[key])} (${expected})`);
@@ -43,7 +52,7 @@ module.exports = NodeHelper.create({
       check("rotation", ["normal", "left", "right", "inverted"].includes(c.rotation), "normal, left, right or inverted");
       check("hdmiPort", typeof c.hdmiPort === "string" && /^[a-zA-Z0-9][a-zA-Z0-9_.:-]*$/.test(c.hdmiPort), "output name, e.g. HDMI-1");
     }
-    for (const key of ["debugMode", "verifyPower"]) check(key, typeof c[key] === "boolean", "true or false, without quotes");
+    for (const key of ["debugMode", "verifyPower", "wakeOnMouse"]) check(key, typeof c[key] === "boolean", "true or false, without quotes");
     if (invalid.length) {
       const message = `Invalid configuration: ${invalid.join("; ")}`;
       this.status("config", message);
