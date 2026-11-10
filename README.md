@@ -20,9 +20,10 @@ Go to your MMM-PIR-Sensor-BODK module folder:
 
 ```sh
 cd ~/MagicMirror/modules/MMM-PIR-Sensor-BODK
+npm install
 ```
 
-This module has no npm dependencies, so `npm install` is not required. Python 3, a working `RPi.GPIO` installation and the selected display command must already be available.
+Run `npm install` in the module folder. Python 3 and the selected display command must be available. On supported Raspberry Pi architectures, npm installs `RPi.GPIO` in the module environment (or uses the system package).
 
 Configure the module in `config/config.js` as shown below. Keep the folder name and `MMM-PIR-Sensor-BODK.js` unchanged. Remove or disable the original Lite module configuration before enabling BODK, so two modules do not control the same sensor and monitor. Retain your working sensor and display settings, and restart MagicMirror after installation.
 
@@ -40,7 +41,7 @@ Incorporate changes from this repository:
 git pull --ff-only
 ```
 
-No `npm install` is required. Restart MagicMirror to load the updated code.
+Run `npm install` after updating. Restart MagicMirror to load the updated code.
 
 These update commands apply to a copy cloned from this BODK repository. If you previously installed the module by copying files or cloning the original Lite repository, first install from the BODK repository using the steps above. Back up your existing module and configuration before replacing them.
 
@@ -53,6 +54,7 @@ Add this entry to the `modules` array in `config/config.js`, retaining your exis
   module: "MMM-PIR-Sensor-BODK",
   position: "top_right",
   config: {
+    language: "en",
     sensorPin: 2,
     commandType: "xrandr",
     hdmiPort: "HDMI-1",
@@ -75,7 +77,7 @@ Pins use BCM numbering, not physical header positions. Only one sensor/display c
 | `verifyPower` | `true` | Query display output state after each command; retry on failure or mismatch. |
 | `wakeOnMouse` | `true` | Mouse movement in the MagicMirror window wakes the display and resets the inactivity timer, including input delivered through VNC. Set to `false` to disable. |
 | `debugMode` | `false` | Simulate display changes without running display commands. Sensor still runs. |
-| `title` | `"Automatic Standby"` | Countdown title; empty string hides it. |
+| `title` | `null` (translated automatic title) | Countdown title; empty string hides it. |
 | `showCountDown` | `true` | Display countdown; disabling it stops periodic UI updates. |
 | `showDetection` | `true` | Show detection icon independently of the countdown. |
 | `updateInterval` | `1000` | UI refresh milliseconds; clamped to 100-5000; zero uses 1000. |
@@ -137,3 +139,9 @@ Replace `2` with your BCM pin. Expect `PIR_START` after stabilization and `USER_
 ```
 
 `wlr-randr` must be installed and runnable in the same desktop session as MagicMirror. The module uses `--output <name> --off` to disable the output and `--output <name> --on --transform <rotation>` to enable it. Verification reads the selected output's `Enabled` field; other outputs are ignored.
+
+## Language
+
+English is the default, independently of the MagicMirror global language. Set `language: "da"` in this module's `config` for Danish, or `language: "en"` for English. Unsupported languages fall back to English. Custom labels and device names retain their configured values. Technical logs and diagnostic errors are in English.
+
+`npm install` creates a local `.venv` and installs the Python packages in `requirements.txt`. Python 3 with venv and pip support must be installed first (on Raspberry Pi OS: `sudo apt install python3-venv python3-pip`). Set `PYTHON` during installation to choose another Python executable. System display commands and hardware access still require operating-system setup. Run `npm install` after `git pull --ff-only`.

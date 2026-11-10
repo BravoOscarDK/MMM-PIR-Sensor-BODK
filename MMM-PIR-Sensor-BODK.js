@@ -1,8 +1,23 @@
 /* Based on MMM-PIR-Sensor-Lite by Grena. MIT licensed. */
 Module.register("MMM-PIR-Sensor-BODK", {
+  text(key) {
+    const texts = {
+      "en": {
+        "Automatic Standby": "Automatic Standby",
+        "Loading...": "Loading..."
+      },
+      "da": {
+        "Automatic Standby": "Automatisk standby",
+        "Loading...": "Indlæser..."
+      }
+    };
+    const language = String(this.config.language || "en").toLowerCase().split(/[-_]/)[0];
+    return (Object.hasOwn(texts, language) ? texts[language] : texts.en)[key] || texts.en[key] || key;
+  },
   defaults: {
+    language: "en",
     sensorPin: 0, commandType: "xrandr", hdmiPort: "HDMI-1", rotation: "normal",
-    title: "Automatic Standby", deactivateDelay: 15 * 60 * 1000,
+    title: null, deactivateDelay: 15 * 60 * 1000,
     updateInterval: 1000, animationSpeed: 1000, showCountDown: true, showDetection: true,
     hoursLabel: "h", minutesLabel: "m", secondsLabel: "s", debugMode: false,
     verifyPower: true, wakeOnMouse: true
@@ -39,13 +54,13 @@ Module.register("MMM-PIR-Sensor-BODK", {
     const wrapper = document.createElement("div");
     if (this.errorMessage || !this.loaded) {
       wrapper.className = "dimmed light small";
-      wrapper.textContent = this.errorMessage || this.translate("LOADING");
+      wrapper.textContent = this.errorMessage || this.text("Loading...");
       return wrapper;
     }
-    if (this.config.showCountDown && this.config.title) {
+    if (this.config.showCountDown && this.config.title !== "") {
       const title = document.createElement("div");
       title.className = "light small";
-      title.textContent = this.config.title;
+      title.textContent = this.config.title ?? this.text("Automatic Standby");
       wrapper.appendChild(title);
     }
     const line = document.createElement("div");

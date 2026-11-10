@@ -15,5 +15,10 @@
     "motion",
     "monitor",
     "standby"
-  ]
+  ],
+  "scripts": {
+    "postinstall": "node scripts/install-python.js",
+    "test": "node --test",
+    "check": "node --check MMM-PIR-Sensor-BODK.js && node --check node_helper.js"
+  }
 }

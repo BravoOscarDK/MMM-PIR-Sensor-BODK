@@ -68,7 +68,7 @@ module.exports = NodeHelper.create({
   },
   getDataPIR() {
     if (this.stopped) return;
-    const child = spawn("python3", ["-u", path.join(__dirname, "pir.py"), String(this.config.sensorPin)]);
+    const child = spawn(path.join(__dirname, ".venv", process.platform === "win32" ? "Scripts/python.exe" : "bin/python"), ["-u", path.join(__dirname, "pir.py"), String(this.config.sensorPin)]);
     this.sensor = child;
     this.sensorWatchdog = setTimeout(() => {
       this.status("sensor", "PIR did not become ready; restarting sensor.");
