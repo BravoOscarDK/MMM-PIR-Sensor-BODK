@@ -38,6 +38,7 @@ The workspace standard is `C:/Dev/MagicMirror/AGENTS.md`. Each module repository
 
 ## Documentation
 
+- Use the same README main sections in this order: Description, Requirements, Installation, Configuration, Language, Updating, Troubleshooting, Validation, License. Put module-specific guidance in subsections. Spell the product name `MagicMirror²` in prose; preserve literal `MagicMirror` in filesystem paths, URLs and code identifiers. Clearly label prototypes and unavailable functionality instead of inventing installation or configuration steps.
 - Write an English README with purpose, prerequisites, clone plus npm installation, a pasteable module config, configuration defaults, language selection, updating and relevant troubleshooting or limitations.
 - Include `language: "en"` in examples and show how to select Danish with `language: "da"`.
 - Keep README tables, config examples, actual defaults and dependencies consistent. Explain required external account or hardware setup where applicable.
