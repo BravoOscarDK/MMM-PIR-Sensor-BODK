@@ -1,8 +1,8 @@
-# MagicMirror BODK development agent
+# MagicMirror² BODK development agent
 
 ## Purpose and scope
 
-Maintain a consistent family of MagicMirror modules for BravoOscarDK. Apply these standards to new modules and changes to existing modules. Speak Danish with the user unless requested otherwise; write source code, comments, default UI text, diagnostic messages and repository documentation in English.
+Maintain a consistent family of MagicMirror² modules for BravoOscarDK. Apply these standards to new modules and changes to existing modules. Speak Danish with the user unless requested otherwise; write source code, comments, default UI text, diagnostic messages and repository documentation in English.
 
 The workspace standard is `C:/Dev/MagicMirror/AGENTS.md`. Each module repository also carries a standalone copy so these rules travel with its GitHub checkout. When changing shared standards, synchronize the copies; preserve any explicitly documented module-specific requirements. Follow the user's current instructions when they differ from these defaults.
 
@@ -11,13 +11,13 @@ The workspace standard is `C:/Dev/MagicMirror/AGENTS.md`. Each module repository
 - Use `MMM-BambuLab-BODK` as the reference for installation, configuration, English defaults, display options and documentation. Inspect relevant files before implementing; do not copy unrelated printer behavior or credentials.
 - Name repositories, directories and registered modules `MMM-<Name>-BODK`, with exactly matching capitalization. Use `mmm-<name>-bodk` for the npm package name.
 - Keep `<module>.js` for browser display and `node_helper.js` for server work when needed. Place reusable backend logic in `lib/`, setup utilities in `scripts/` and automated tests in `test/`. Add `<module>.css`, translations and `config.example.js` when appropriate.
-- Keep frontend and backend responsibilities separate. Use MagicMirror lifecycle methods and socket notifications. Do not introduce a framework or shared runtime dependency solely to enforce consistent structure.
+- Keep frontend and backend responsibilities separate. Use MagicMirror² lifecycle methods and socket notifications. Do not introduce a framework or shared runtime dependency solely to enforce consistent structure.
 - Support separate instances where meaningful: route requests and responses by identifier, isolate connections and state, and avoid changing global date or language settings.
 - Cancel timers, child processes, connections and listeners as appropriate on stop, suspension or reconfiguration. Avoid duplicate work and unbounded retries.
 
 ## Language and configuration
 
-- Every module exposes `language: "en"` in its defaults and configuration example. English remains the default independently of MagicMirror's global language.
+- Every module exposes `language: "en"` in its defaults and configuration example. English remains the default independently of MagicMirror²'s global language.
 - Support at least English (`en`) and Danish (`da`). Normalize regional codes such as `da-DK`. Unsupported languages and missing translation keys fall back to English safely.
 - Translate built-in user-facing labels, loading text, statuses and notifications. Technical diagnostics may remain English. Keep explicit custom labels, device names and upstream data unchanged.
 - Keep translations in a maintainable dictionary or translation files. Ensure the actual lookup honors the module's own language; merely providing `getTranslations()` is insufficient if it follows the global language.
@@ -28,8 +28,8 @@ The workspace standard is `C:/Dev/MagicMirror/AGENTS.md`. Each module repository
 ## Installation and dependencies
 
 - Standard installation: `cd ~/MagicMirror/modules`, clone `https://github.com/BravoOscarDK/<module>.git`, enter the module folder, then run `npm install`.
-- Standard update: enter the module folder, run `git pull --ff-only`, run `npm install`, then restart MagicMirror.
-- Declare runtime npm dependencies in `package.json`; commit `package-lock.json`. State the supported Node.js version and keep it compatible with the targeted MagicMirror release.
+- Standard update: enter the module folder, run `git pull --ff-only`, run `npm install`, then restart MagicMirror².
+- Declare runtime npm dependencies in `package.json`; commit `package-lock.json`. State the supported Node.js version and keep it compatible with the targeted MagicMirror² release.
 - Provide `npm test` and an appropriate `npm run check` for new modules. Preserve existing useful checks and add missing checks when touching their setup.
 - If Python is required, keep requirements in `requirements.txt` and use npm setup to create a module-local `.venv` and install them. Run the helper with that environment by default; provide a documented override when useful.
 - Setup must be repeatable, report actionable errors and preserve existing user configuration and data. Never run sudo or install OS packages silently from npm lifecycle scripts.
@@ -54,6 +54,6 @@ The workspace standard is `C:/Dev/MagicMirror/AGENTS.md`. Each module repository
 
 ## Existing module context
 
-As of 2026-11-10, this family includes BambuLab, GoogleNestDoorbell, MPlayer, MyGarbage, MyGarbageDate, PIR-Sensor and Verisure under the `MMM-*-BODK` naming convention. Each module is a separate Git repository owned by `BravoOscarDK`; the parent MagicMirror folder is a shared workspace. Verify current files and repository state rather than assuming previous test results still apply.
+As of 2026-11-10, this family includes BambuLab, GoogleNestDoorbell, MPlayer, MyGarbage, MyGarbageDate, PIR-Sensor and Verisure under the `MMM-*-BODK` naming convention. Each module is a separate Git repository owned by `BravoOscarDK`; the parent `MagicMirror` folder is a shared workspace. Verify current files and repository state rather than assuming previous test results still apply.
 
 MyGarbage's Danish CSV column names and pictogram assets are compatibility data. Preserve their schema and filenames when changing UI language. MyGarbageDate generates that compatible CSV. PIR and MPlayer require real Raspberry Pi/Linux validation for hardware and display behavior.

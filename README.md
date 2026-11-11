@@ -4,6 +4,14 @@
 
 MagicMirror² module for switching a monitor off after inactivity and waking it when a PIR sensor detects presence. Local continuation of [MMM-PIR-Sensor-Lite by Grena](https://github.com/grenagit/MMM-PIR-Sensor-Lite), licensed under MIT. The original copyright is retained in LICENSE.
 
+### Preview
+
+Default countdown display with a fictional standby deadline. This browser preview does not test GPIO or screen power control. English is the default language.
+
+![PIR-Sensor example with fictional data](docs/images/example.png)
+
+The [browser preview](docs/preview.html) uses fictional data only; it does not validate external services or hardware.
+
 ## Requirements
 
 A working MagicMirror² installation and a Node.js version supported by that installation.
